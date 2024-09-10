@@ -24,9 +24,11 @@ class UserProfile(models.Model):
         return self.user.username
 
 @receiver(post_save, sender=User)
-def create_or_update_user_profule(sender, instance, created, **kwargs):
+def create_or_update_user_profile(sender, instance, created, **kwargs):
     """
-    Create or update user profile
+    Create or update the user profile
     """
-    instance.order.update_tota()
-
+    if created:
+        UserProfile.objects.create(user=instance)
+    # Existing users: just save the profile
+    instance.userprofile.save()
