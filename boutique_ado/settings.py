@@ -188,8 +188,8 @@ if 'USE_AWS' in os.environ:
     }
 
     # Bucket config
-    AWS_STORAGE_BUCKET_NAME: 'richprich-boutique-ado-django'
-    AWS_S3_REGION_NAME: 'Europe (Stockholm) eu-north-1'
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')  # <- Updated line
+    AWS_S3_REGION_NAME = 'eu-north-1'  # Update region if needed
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
