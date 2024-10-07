@@ -39,9 +39,13 @@ def checkout(request):
     stripe_public_key = settings.STRIPE_PUBLIC_KEY
     stripe_secret_key = settings.STRIPE_SECRET_KEY
 
-    if request.method == 'POST':
-        bag = request.session.get('bag', {})
+    # Check if the bag is empty for both POST and GET
+    bag = request.session.get('bag', {})
+    if not bag:
+        messages.error(request, "There's nothing in your bag at the moment.")
+        return redirect(reverse('products'))
 
+    if request.method == 'POST':
         form_data = {
             'full_name': request.POST['full_name'],
             'email': request.POST['email'],
@@ -61,6 +65,7 @@ def checkout(request):
             order.stripe_pid = pid
             order.original_bag = json.dumps(bag)
             order.save()
+
             for item_id, item_data in bag.items():
                 try:
                     product = Product.objects.get(id=item_id)
@@ -95,14 +100,9 @@ def checkout(request):
                                     args=[order.order_number]))
         else:
             messages.error(request, ('There was an error with your form. '
-                                     'Please double check your information.'))
-    else:
-        bag = request.session.get('bag', {})
-        if not bag:
-            messages.error(request,
-                           "There's nothing in your bag at the moment")
-            return redirect(reverse('products'))
+                                     'Please double-check your information.'))
 
+    else:
         current_bag = bag_contents(request)
         total = current_bag['grand_total']
         stripe_total = round(total * 100)
@@ -112,8 +112,7 @@ def checkout(request):
             currency=settings.STRIPE_CURRENCY,
         )
 
-        # Attempt to prefill the form with any info
-        # the user maintains in their profile
+        # Attempt to prefill the form with any info the user maintains in their profile
         if request.user.is_authenticated:
             try:
                 profile = UserProfile.objects.get(user=request.user)
@@ -146,6 +145,7 @@ def checkout(request):
     }
 
     return render(request, template, context)
+
 
 
 def checkout_success(request, order_number):
